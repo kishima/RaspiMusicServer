@@ -1,5 +1,5 @@
 #!/bin/bash
 
-cd /home/pi/myapps/audioserver/
+cd `dirname $0`
 python music_server.py
 

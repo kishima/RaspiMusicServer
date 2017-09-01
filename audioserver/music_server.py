@@ -34,13 +34,9 @@ while True:
 		if 0 == cnt % 4:
 			button_stat = button.get_button_stat()
 
-		if 0 == cnt % 4 :#and REALMODE:
+		if 0 == cnt % 4 :
 			x,y = joystick.get_axis()
-			#print(x,y)
 
-		#if REALMODE==False:
-		#	x,y,button = getch.get_debug_key()
-			
 		menu.update(cnt,x,y,button_stat)
 		
 		cnt+=1
@@ -51,4 +47,3 @@ while True:
 
 	except IOError:
 		logging.debug ("Error")
-

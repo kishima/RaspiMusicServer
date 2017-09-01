@@ -60,13 +60,10 @@ class ApLed(threading.Thread):
 		return
 
 	def setText_norefresh(self,text):
-		#logging.debug("setText_norefresh:put queue")
 		self.queue.put(['setText',text])
 		return
 	
 	def doSetText_norefresh(self,text):
-		#logging.debug(text)
-		#return
 		self.textCommand(0x02) # return home
 		time.sleep(.05)
 		

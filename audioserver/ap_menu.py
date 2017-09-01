@@ -17,7 +17,7 @@ class ApMenu:
 		self.led = ledobj
 		self.volume = slide_barobj
 		self.mpdstat = "" #mpd status
-		self.menu_stat = MENU_PLAYING
+		self.menu_stat = MENU_ONMENU
 		self.stat_chage = True
 
 		self.menu_item = ["PLAY","STOP","CANCEL"]
@@ -76,16 +76,12 @@ class ApMenu:
 			self.mpdstat = self.check_mpd_status("mpc")
 			self.mpdstat = self.pickup_first_line(self.mpdstat)
 			self.mpdstat = self.mpdstat.replace('\n','')
-			#logging.debug(stat)
 			
 		if 0 == cnt % 10:
 			if self.loop1 > len(self.mpdstat) :
 				self.loop1=0
-			#led.setText(stat[loop1:])
-			#logging.debug(len(stat)-loop1 )
 			if len(self.mpdstat)-self.loop1 < 32:
 				t=self.mpdstat[self.loop1:]+" / "+self.mpdstat
-				#logging.debug(t)
 				self.led.setText_norefresh(t)
 			else:
 				self.led.setText_norefresh(self.mpdstat[self.loop1:])
@@ -99,7 +95,7 @@ class ApMenu:
 		condition_update = False
 
 		if self.stat_chage:
-			#状態変化直後は画面更新周期に関わらず画面を更新
+			#menu will be updated when state is changed
 			condition_update = True
 			self.stat_chage=False
 
@@ -129,8 +125,6 @@ class ApMenu:
 		
 		if condition_update:
 			self.led.clear_display()
-			#print("MENU=",self.menu_item[self.menu_cursor])
-			#print("Station=",self.station_list[self.current_station])
 			volume = self.volume.get_current_volset()
 			output  = " ["+self.menu_item[self.menu_cursor]+"]"+"  V:"+str(volume)+"\n"
 			output += self.station_list[self.current_station]
