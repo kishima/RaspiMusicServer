@@ -16,7 +16,7 @@ Power supply is managed by Arduino with a button safely. We don't need to take c
 - SparkFun Logic Level Converter - Bi-Directional
   - https://www.sparkfun.com/products/12009
 - Cables
-
+- Heat sink and 5V fan for RasPi CPU
 - GrovePi
   - https://www.dexterindustries.com/grovepi/
 - Grove - LCD RGB Backlight
