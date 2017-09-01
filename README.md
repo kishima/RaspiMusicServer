@@ -25,6 +25,8 @@ Power supply is managed by Arduino with a button safely. We don't need to take c
   - http://wiki.seeed.cc/Grove-Button/
 - Grove - Slide Potentiometer
   - http://wiki.seeed.cc/Grove-Slide_Potentiometer/
+- Grove - Thumb Joystick
+  - http://wiki.seeed.cc/Grove-Thumb_Joystick/
 
 ## Software
 
