@@ -1,5 +1,8 @@
 # RaspiMusicServer
+
 This an music server on Raspeberry pi with Grovepi and Arduino.
+The server plays music by mpc and can be controlled by a joystick, a button. Audio volume can be changed by a slide bar.
+Power supply is managed by Arduino with a button safely. We don't need to take care of timing of turning on/off Raspi.
 
 ![Schematic](https://github.com/kishima/RaspiMusicServer/blob/master/Picture_surface.jpg)
 ![Schematic](https://github.com/kishima/RaspiMusicServer/blob/master/Picture_in_Box.jpg)
@@ -35,8 +38,16 @@ arduino/control_power.ino shall be loaded into Arduino.
 1. Communication with Arduino
 "shutdown_check/shutdown_check.py" shall be run from /etc/rc.local by super user.
 
-2. Music server application
+2. Install mpd/mpc
+
+3. Set a playlist as you want
+
+4. Music server application
 "audioserver/run.sh" shall be from cron by pi user.
+
+5. Connect either a speaker or a DAC
+I connected a USB DAC.
+http://akizukidenshi.com/catalog/g/gK-05369/
 
 ## Notification
 
