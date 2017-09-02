@@ -4,7 +4,7 @@
 import logging
 import time
 import ap_volume
-import ap_led
+import ap_lcd
 import ap_joystick
 import ap_button
 import ap_menu
@@ -15,10 +15,10 @@ logging.basicConfig(level=logging.DEBUG,format='%(asctime)s (%(threadName)-10s) 
 volume    = ap_volume.ApVolume(barPin=2,ledPin=17)
 joystick  = ap_joystick.ApJoystick(pinX=1,pinY=0)
 button    = ap_button.ApButton(pin=6)
-led       = ap_led.ApLed()
-led.set_bg_rgb(0,50,0)
-led.start()
-menu = ap_menu.ApMenu(led,volume)
+lcd       = ap_lcd.ApLcd()
+lcd.set_bg_rgb(0,50,0)
+lcd.start()
+menu = ap_menu.ApMenu(lcd,volume)
 
 cnt = 0
 

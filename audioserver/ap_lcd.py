@@ -13,7 +13,7 @@ import Queue
 DISPLAY_RGB_ADDR = 0x62
 DISPLAY_TEXT_ADDR = 0x3e
 		
-class ApLed(threading.Thread):
+class ApLcd(threading.Thread):
 
 	def __init__(self):
 		threading.Thread.__init__(self)
