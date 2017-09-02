@@ -16,7 +16,7 @@ volume    = ap_volume.ApVolume(barPin=2,ledPin=17)
 joystick  = ap_joystick.ApJoystick(pinX=1,pinY=0)
 button    = ap_button.ApButton(pin=6)
 led       = ap_led.ApLed()
-led.setRGB(0,50,0)
+led.set_bg_rgb(0,50,0)
 led.start()
 menu = ap_menu.ApMenu(led,volume)
 

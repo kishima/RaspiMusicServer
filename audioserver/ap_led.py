@@ -40,13 +40,13 @@ class ApLed(threading.Thread):
 
 	def check_queue(self):
 		q = self.queue.get()
-		if q[0] == 'setText':
-			self.doSetText_norefresh(q[1])
+		if q[0] == 'put_text':
+			self.do_put_text(q[1])
 		if q[0] == 'clear_display':
 			self.do_clear_display()
 		return self.queue.empty()
 
-	def textCommand(self,cmd):
+	def send_command(self,cmd):
 		self.bus.write_byte_data(DISPLAY_TEXT_ADDR,0x80,cmd)
 		return
 
@@ -55,20 +55,20 @@ class ApLed(threading.Thread):
 		return
 
 	def do_clear_display(self):
-		self.textCommand(0x01) # clear display
+		self.send_command(0x01) # clear display
 		time.sleep(.05)
 		return
 
-	def setText_norefresh(self,text):
-		self.queue.put(['setText',text])
+	def put_text(self,text):
+		self.queue.put(['put_text',text])
 		return
 	
-	def doSetText_norefresh(self,text):
-		self.textCommand(0x02) # return home
+	def do_put_text(self,text):
+		self.send_command(0x02) # return home
 		time.sleep(.05)
 		
-		self.textCommand(0x08 | 0x04) # display on, no cursor
-		self.textCommand(0x28) # 2 lines
+		self.send_command(0x08 | 0x04) # display on, no cursor
+		self.send_command(0x28) # 2 lines
 		time.sleep(.05)
 		count = 0
 		row = 0
@@ -78,7 +78,7 @@ class ApLed(threading.Thread):
 				row += 1
 				if row == 2:
 					break
-				self.textCommand(0xc0)
+				self.send_command(0xc0)
 				if c == '\n':
 					continue
 			count += 1

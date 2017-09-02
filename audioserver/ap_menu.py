@@ -82,9 +82,9 @@ class ApMenu:
 				self.loop1=0
 			if len(self.mpdstat)-self.loop1 < 32:
 				t=self.mpdstat[self.loop1:]+" / "+self.mpdstat
-				self.led.setText_norefresh(t)
+				self.led.put_text(t)
 			else:
-				self.led.setText_norefresh(self.mpdstat[self.loop1:])
+				self.led.put_text(self.mpdstat[self.loop1:])
 			
 			self.loop1+=1
 		return
@@ -128,7 +128,7 @@ class ApMenu:
 			volume = self.volume.get_current_volset()
 			output  = " ["+self.menu_item[self.menu_cursor]+"]"+"  V:"+str(volume)+"\n"
 			output += self.station_list[self.current_station]
-			self.led.setText_norefresh(output)
+			self.led.put_text(output)
 
 		if button==1:
 			print("button press")
