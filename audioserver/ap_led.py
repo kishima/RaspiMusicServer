@@ -88,7 +88,7 @@ class ApLed(threading.Thread):
 		logging.debug("put_temp_string")
 		return
 		
-	def setRGB(self,r,g,b):
+	def set_bg_rgb(self,r,g,b):
 		self.bus.write_byte_data(DISPLAY_RGB_ADDR,0,0)
 		self.bus.write_byte_data(DISPLAY_RGB_ADDR,1,0)
 		self.bus.write_byte_data(DISPLAY_RGB_ADDR,0x08,0xaa)

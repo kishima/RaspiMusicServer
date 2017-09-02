@@ -37,6 +37,7 @@ while True:
 		if 0 == cnt % 4 :
 			x,y = joystick.get_axis()
 
+		volume.led_update(cnt)
 		menu.update(cnt,x,y,button_stat)
 		
 		cnt+=1
