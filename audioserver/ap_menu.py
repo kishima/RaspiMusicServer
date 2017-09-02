@@ -11,6 +11,7 @@ MENU_PLAYING = 1
 MENU_ONMENU  = 2
 
 class ApMenu:
+	MENU_TIMEOUT_SET = 20*5
 	
 	def __init__(self,ledobj,volumebj):
 		self.loop1 = 0
@@ -25,6 +26,7 @@ class ApMenu:
 		self.menu_cursor = 0
 		self.current_station = 0
 		self.get_playlist()
+		self.menu_timeout = 0
 		return
 
 	def get_playlist(self):
@@ -70,6 +72,7 @@ class ApMenu:
 		if x!=0 or y!=0 or button != 0:
 			self.menu_stat = MENU_ONMENU
 			self.stat_chage = True
+			self.menu_timeout = 20*5
 			return
 
 		if 0 == cnt % 40 :
@@ -93,6 +96,13 @@ class ApMenu:
 		if y != 0:
 			x = 0
 		condition_update = False
+
+		if x!=0 or y!=0 or button != 0:
+			self.menu_timeout = self.MENU_TIMEOUT_SET
+
+		self.menu_timeout -= 1
+		if self.menu_timeout <= 0:
+			self.menu_stat = MENU_PLAYING
 
 		if self.stat_chage:
 			#menu will be updated when state is changed
@@ -126,7 +136,7 @@ class ApMenu:
 		if condition_update:
 			self.led.clear_display()
 			volume = self.volume.get_current_volset()
-			output  = " ["+self.menu_item[self.menu_cursor]+"]"+"  V:"+str(volume)+"\n"
+			output  = "["+self.menu_item[self.menu_cursor]+"]"+"  V:"+str(volume)+"\n"
 			output += self.station_list[self.current_station]
 			self.led.put_text(output)
 

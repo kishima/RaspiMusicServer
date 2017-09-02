@@ -14,9 +14,10 @@ class ApVolume:
 	LED_BLINK      = 2
 	LED_BLINK_NSEC = 3
 	
-	def __init__(self,barPin,ledPin):
+	def __init__(self,barPin,ledPin,display_obj):
 		self.slide = barPin
 		self.led   = ledPin
+		self.lcd   = display_obj
 		grovepi.pinMode(self.slide,"INPUT")
 		grovepi.pinMode(self.led,"OUTPUT")
 		self.last_val = deque([50,50,50])
@@ -99,6 +100,7 @@ class ApVolume:
 		proc = subprocess.call(cmd, shell=True)
 		self.last_set_vol = value
 		self.led_set_blink_nsec(0.25)
+		self.lcd.put_text("      V="+str(value)+"   ")
 		return
 
 	def volume_check(self):
