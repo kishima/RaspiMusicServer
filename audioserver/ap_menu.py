@@ -12,10 +12,10 @@ MENU_ONMENU  = 2
 
 class ApMenu:
 	
-	def __init__(self,ledobj,slide_barobj):
+	def __init__(self,ledobj,volumebj):
 		self.loop1 = 0
 		self.led = ledobj
-		self.volume = slide_barobj
+		self.volume = volumebj
 		self.mpdstat = "" #mpd status
 		self.menu_stat = MENU_ONMENU
 		self.stat_chage = True

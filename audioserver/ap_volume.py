@@ -8,7 +8,7 @@ from collections import Counter
 from collections import deque
 import logging
 
-class ApSlideBar:
+class ApVolume:
 		
 	def __init__(self,barPin,ledPin):
 		self.slide = barPin
@@ -41,7 +41,7 @@ class ApSlideBar:
 		#logging.debug("set OK")
 		return
 
-	def volume_act(self):
+	def volume_check(self):
 		value = self.get_vol()
 		self.last_val.append(value)
 		self.last_val.popleft()
