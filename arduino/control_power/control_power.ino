@@ -96,20 +96,20 @@ void button_event(int press_duration){
       break;
     case RPI_STAT_BOOT:
       Serial.println("ignore");
-      //起動中はボタンおしても無反応
+      //button is ignored when it's booting
       break;
     case RPI_STAT_RUNNING:
-      //動作中にボタン押すとシャットダウンシーケンススタート
+      //shutdown will start when it's running
       Serial.println("start shutdown process");
       digitalWrite(pin_shutdown,LOW);
       raspi_stat = RPI_STAT_WAIT_SHUTDOWN;
       break;
     case RPI_STAT_WAIT_SHUTDOWN:
-      //シャットダウン中破はボタンおしても無反応
+      //button is ignored when it's shutting down
       Serial.println("ignore");
       break;
     case RPI_STAT_UNKNOWN:
-      //異常状態になったら、長押しで電源OFF
+      //power can be off by long press when status is UNKNOWN
       if(press_duration > 20*3){ //3sec (50*20*3 msec)
         Serial.println("*** Emergency turn off ***");
         turn_off();
@@ -131,13 +131,13 @@ void normal_task(int loop_count){
 
   switch(raspi_stat){
     case RPI_STAT_SHUTDOWN:
-      //何もしない
+      //do nothing
       timeout_counter1=0;
       timeout_counter2=0;
       break;
     case RPI_STAT_BOOT:
-      //RasPiのGPIOの監視
-      //GPIOがLOWに落とされたら > 監視スクリプトが起動した
+      //Check RasPi's GPIO
+      //GPIO is LOW: "shutdown_checker.py" gets started
       timeout_counter1++;
       if(timeout_counter1 > 20*60*2 ){//50*20 * 60 * 2 (2min)
         Serial.println("*** BOOT error ***");
@@ -174,12 +174,12 @@ void normal_task(int loop_count){
           int stat = digitalRead(pin_rpistat);
           //Serial.println(stat);
           if(stat == 1){
-            shtdwn_delay_count=1; // 電源OFFまでのカウントアップスタート
+            shtdwn_delay_count=1; // start couting up until power off
             Serial.println("start TURN OFF power count down");
             digitalWrite(pin_shutdown,HIGH);
           }
         }else{
-          if(shtdwn_delay_count>20*50){ //50*20 * 50 msec (70sec)
+          if(shtdwn_delay_count>20*50){ //50*20 * 50 msec (50sec)
             raspi_stat = RPI_STAT_SHUTDOWN;
             Serial.println("*** TURN OFF power successfully ***");
             turn_off();
@@ -189,7 +189,7 @@ void normal_task(int loop_count){
       }
       break;
     case RPI_STAT_UNKNOWN:
-      //何もしない
+      //do nothing
       break;
    }
 }
@@ -200,7 +200,7 @@ void normal_task(int loop_count){
 void loop() {
   static int press_duration=0;
   static int loop_count = 0;
-  static int button_stat = 1; // 0:押している状態 1:離している状態
+  static int button_stat = 1; // 0:pressed 1:not pressed
 
   delay(50);
   loop_count++;
