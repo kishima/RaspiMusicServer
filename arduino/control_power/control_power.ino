@@ -1,12 +1,18 @@
+#include <Wire.h>
 
 int pin_LED      = 13;
 int pin_button   = 12;
 int pin_shutdown = 9;
 int pin_rpistat  = 8;
 int pin_relay    = 3;
+int i2c_slave_addr = 0x10;
 
 void setup() {
-  // put your setup code here, to run once:
+  //I2C
+  Wire.begin(i2c_slave_addr);
+  Wire.onReceive(callback_i2c_receive);
+
+  //GPIO
   pinMode(pin_LED,OUTPUT);
   pinMode(pin_button,INPUT);
   pinMode(pin_shutdown,OUTPUT);
@@ -22,8 +28,6 @@ void setup() {
   delay(1000);
   Serial.println("---------Gets started------------");
 }
-
-
 
 const int RPI_STAT_SHUTDOWN = 0;
 const int RPI_STAT_BOOT     = 1;
@@ -88,11 +92,12 @@ void control_LED(int count){
 void button_event(int press_duration){
    switch(raspi_stat){
     case RPI_STAT_SHUTDOWN:
-      //電源ON
+      //Power on
       Serial.println("start turn on process");
       turn_on();
       Serial.println("*** TURN ON power ***");
       raspi_stat = RPI_STAT_BOOT;
+      clear_timer();
       break;
     case RPI_STAT_BOOT:
       Serial.println("ignore");
@@ -131,7 +136,8 @@ void normal_task(int loop_count){
 
   switch(raspi_stat){
     case RPI_STAT_SHUTDOWN:
-      //do nothing
+      //check timer
+      if(loop_count % 20 == 0){ check_timer(); }
       timeout_counter1=0;
       timeout_counter2=0;
       break;
@@ -194,6 +200,78 @@ void normal_task(int loop_count){
    }
 }
 
+
+const int  CMD_SET_WAKUP_TIMER01    = 0x11;
+const int  CMD_SET_WAKUP_TIMER02    = 0x12;
+const int  CMD_CLEAR_TIMER          = 0x40;
+const int  CMD_SHUTDOWN_NOW         = 0xFF;
+
+unsigned long raspy_timer[] = {0,0}; 
+
+void clear_timer(){
+      raspy_timer[0]=0;
+      raspy_timer[1]=0;
+}
+
+void wakeup_by_timer(){
+      Serial.println("start turn on process by timer");
+      turn_on();
+      Serial.println("*** TURN ON power ***");
+      raspi_stat = RPI_STAT_BOOT;
+      clear_timer();
+}
+
+void check_timer(){
+  unsigned long now = millis();
+  if(raspy_timer[0] > 0 && now > raspy_timer[0]){
+      Serial.println("Timer1 ignition");
+      wakeup_by_timer();
+  }
+  if(raspy_timer[1] > 0 && now > raspy_timer[1]){
+      Serial.println("Timer2 ignition");
+      wakeup_by_timer();
+  }
+}
+
+void callback_i2c_receive(int length){
+  int cmd = Wire.read();
+  int data_len = Wire.read();
+  Serial.print("cmd = ");
+  Serial.println(cmd);
+  Serial.print("data_len = ");
+  Serial.println(data_len);
+  unsigned long data=0;
+  if(data_len==4){
+    int count=3;
+    while (0 < Wire.available()) {
+      int d = Wire.read();
+      data += d << (8*count);
+      count -= 1;
+    }
+    Serial.print("\ndata=");
+    Serial.println(data);
+  }
+  
+  switch(cmd){
+    case CMD_SET_WAKUP_TIMER01:
+      raspy_timer[0]=millis()+data*1000;
+      break;
+    case CMD_SET_WAKUP_TIMER02:
+      raspy_timer[1]=millis()+data*1000;
+      break;
+    case CMD_CLEAR_TIMER:
+      clear_timer();
+      break;
+    case CMD_SHUTDOWN_NOW:
+      if(raspi_stat == RPI_STAT_RUNNING){ 
+        Serial.println("shutdown request from Raspi");
+        digitalWrite(pin_shutdown,LOW);
+        raspi_stat = RPI_STAT_WAIT_SHUTDOWN;
+      }
+      break;
+  }
+  
+}
 
 
 //************************************************************
