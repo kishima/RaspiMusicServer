@@ -5,6 +5,7 @@ import logging
 import time
 import subprocess
 import re
+from pykakasi import kakasi
 
 MENU_IDLE    = 0
 MENU_PLAYING = 1
@@ -27,6 +28,12 @@ class ApMenu:
 		self.current_station = 0
 		self.get_playlist()
 		self.menu_timeout = 0
+		
+		self.kakasi = kakasi()
+		self.kakasi.setMode('H', 'a')
+		self.kakasi.setMode('K', 'a')
+		self.kakasi.setMode('J', 'a')
+		self.conv = self.kakasi.getConverter()
 		return
 
 	def get_playlist(self):
@@ -54,7 +61,7 @@ class ApMenu:
 	def check_mpd_status(self,cmd):
 		p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		stdout_data, stderr_data = p.communicate()
-		return stdout_data
+		return self.conv.do(stdout_data)
 	
 	def update(self,cnt,x,y,button):
 		if self.menu_stat == MENU_IDLE:

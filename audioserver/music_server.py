@@ -16,14 +16,6 @@ logging.basicConfig(level=logging.DEBUG,format='%(asctime)s (%(threadName)-10s) 
 timer = arduino_timer.ArduinoTimer()
 timer.set_timer_once()
 
-from pykakasi import kakasi
-kakasi = kakasi()
-kakasi.setMode('H', 'a')
-kakasi.setMode('K', 'a')
-kakasi.setMode('J', 'a')
-conv = kakasi.getConverter()
-print(conv.do(U'本日は晴天なり')) # honjitsuhaseitennari
-
 lcd = ap_lcd.ApLcd()
 lcd.set_bg_rgb(0,50,0)
 lcd.start()
@@ -42,7 +34,7 @@ while True:
 		y=0
 		
 		if 0 == cnt % 4 :
-			print(motion.check_status())
+			#print(motion.check_status())
 			volume.volume_check()
 			button_stat = button.get_button_stat()
 			x,y = joystick.get_axis()
