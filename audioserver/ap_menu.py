@@ -61,7 +61,7 @@ class ApMenu:
 	def check_mpd_status(self,cmd):
 		p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		stdout_data, stderr_data = p.communicate()
-		return self.conv.do(stdout_data)
+		return self.conv.do(stdout_data.decode('utf-8'))
 	
 	def update(self,cnt,x,y,button):
 		if self.menu_stat == MENU_IDLE:
