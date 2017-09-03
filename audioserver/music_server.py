@@ -8,9 +8,12 @@ import ap_lcd
 import ap_joystick
 import ap_button
 import ap_menu
+import arduino_timer
 
 logging.basicConfig(level=logging.DEBUG,format='%(asctime)s (%(threadName)-10s) %(message)s',)
 
+timer = arduino_timer.ArduinoTimer()
+timer.set_timer_once()
 
 lcd = ap_lcd.ApLcd()
 lcd.set_bg_rgb(0,50,0)
