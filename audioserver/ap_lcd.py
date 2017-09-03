@@ -1,7 +1,9 @@
 ﻿#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import time,sys
+import time
+import smbus
+import RPi.GPIO as GPIO
 import logging
 import subprocess
 import grovepi
@@ -18,17 +20,7 @@ class ApLcd(threading.Thread):
 		threading.Thread.__init__(self)
 		self.setDaemon(True)
 		self.queue = Queue.Queue()
-		if sys.platform == 'uwp':
-			import winrt_smbus as smbus
-			self.bus = smbus.SMBus(1)
-		else:
-			import smbus
-			import RPi.GPIO as GPIO
-			rev = GPIO.RPI_REVISION
-			if rev == 2 or rev == 3:
-				self.bus = smbus.SMBus(1)
-			else:
-				self.bus = smbus.SMBus(0)
+		self.bus = smbus.SMBus(1)
 		self.current_text=""
 		return
 
