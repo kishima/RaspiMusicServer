@@ -13,19 +13,22 @@ import arduino_timer
 
 logging.basicConfig(level=logging.DEBUG,format='%(asctime)s (%(threadName)-10s) %(message)s',)
 
-timer = arduino_timer.ArduinoTimer()
-timer.set_timer_once()
-
 lcd = ap_lcd.ApLcd()
 lcd.set_bg_rgb(0,50,0)
 lcd.start()
 joystick  = ap_joystick.ApJoystick(pinX=1,pinY=0)
 button    = ap_button.ApButton(pin=6)
 volume    = ap_volume.ApVolume(barPin=2,ledPin=17,display_obj=lcd)
-motion    = ap_motion_detect.ApMotionDetect(digital_pin=3)
+motion    = ap_motion_detect.ApMotionDetect(gpio_pin=23)
+timer     = arduino_timer.ArduinoTimer(motion)
+timer.set_timer_once()
+
 menu = ap_menu.ApMenu(lcd,volume)
 
 cnt = 0
+last_button_stat = 0
+last_x = 0
+last_y = 0
 
 while True:
 	try:
@@ -33,14 +36,28 @@ while True:
 		x=0
 		y=0
 		
-		if 0 == cnt % 4 :
-			#print(motion.check_status())
+		if 0 == cnt % 4 : #50ms*4=200ms
+			motion.check_status()
 			volume.volume_check()
-			button_stat = button.get_button_stat()
-			x,y = joystick.get_axis()
+
+		if 0 == cnt % 2 : #50ms*2=100ms
+			current_button_stat = button.get_button_stat()
+			if last_button_stat == 0 and current_button_stat == 1:
+				button_stat = 1
+			last_button_stat = current_button_stat
+			
+			current_x,current_y = joystick.get_axis()
+			if last_x == 0 and current_x != 0:
+				x = current_x
+			if last_y == 0 and current_y != 0:
+				y = current_y
+			last_x,last_y = current_x,current_y
 
 		volume.led_update(cnt)
 		menu.update(cnt,x,y,button_stat)
+		
+		if 0 == cnt % 20:
+			timer.check_event()
 		
 		cnt+=1
 		if cnt>30000 :
