@@ -1,8 +1,11 @@
 ﻿#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import signal
+import sys
 import logging
 import time
+import ap_music_server_conf
 import ap_volume
 import ap_lcd
 import ap_joystick
@@ -17,6 +20,7 @@ logging.basicConfig(level=logging.DEBUG,format='%(asctime)s (%(threadName)-10s) 
 class MusicServer:
 	
 	def __init__(self):
+		self.conf = ap_music_server_conf.MusicServerConfig()
 		self.lcd = ap_lcd.ApLcd()
 		self.lcd.set_bg_rgb(0,50,0)
 		self.lcd.start()
@@ -28,9 +32,16 @@ class MusicServer:
 		self.motion    = ap_motion_detect.ApMotionDetect(gpio_pin=23)
 		self.timer     = arduino_timer.ArduinoTimer(self.motion)
 		self.timer.set_timer_once()
+		signal.signal(signal.SIGINT, self.handler)
 
 		self.menu = ap_menu.ApMenu(self.lcd,self.volume)
 		time.sleep(0.1)
+
+	def handler(self, signal, frame):
+		logging.debug('>>> signal detected <<<')
+		self.timer.send_cleartimer_request()
+		logging.debug('exit application')
+		sys.exit(0)
 
 	def main_loop(self):
 		cnt = 0
@@ -75,7 +86,7 @@ class MusicServer:
 				time.sleep(0.05)
 		
 			except IOError:
-				logging.debug ("IOError")
+				logging.debug ("IOError in main_loop")
 
 music_server = MusicServer()
 music_server.main_loop()

@@ -6,9 +6,6 @@ from collections import deque
 import RPi.GPIO as gpio
 
 class ApMotionDetect:
-#	def __init__(self,digital_pin):
-#		self.pin = digital_pin
-#		grovepi.pinMode(self.pin,"INPUT")
 	def __init__(self,gpio_pin):
 		self.pin = gpio_pin
 		gpio.setmode(gpio.BCM)
@@ -17,8 +14,9 @@ class ApMotionDetect:
 		return
 	
 	def check_status(self):
-		#stat = grovepi.digitalRead(self.pin)
 		stat = gpio.input(self.pin)
+		if self.history[len(self.history)-1] == 0 and stat==1:
+			print("motion detected")
 		self.history.append(stat)
 		self.history.popleft()
 		if stat == 0:

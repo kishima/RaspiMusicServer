@@ -1,0 +1,35 @@
+{
+"entry1":{
+	"name": "wakeup",
+	"type": "power",
+	"status": "not yet",
+	"timing": {
+		"type":"weekday",
+		"value":"07:00",
+		"excond":"movement"
+		},
+	"action": "on" 
+},
+"entry2":{
+	"name": "shutdown",
+	"type": "power",
+	"status": "not yet",
+	"timing": {
+		"type":"weekend",
+		"value":"17:00"
+		},
+	"action": "off" 
+},
+"entry3":{
+	"name": "speach",
+	"type": "speach",
+	"status": "not yet",
+	"timing": {
+		"type":"weekday",
+		"value":"02:00"
+		},
+	"action": "on" 
+}
+
+}
+

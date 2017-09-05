@@ -6,6 +6,7 @@ import time
 import subprocess
 import re
 from pykakasi import kakasi
+from arduino_timer import Yukkuri
 
 MENU_IDLE    = 0
 MENU_PLAYING = 1
@@ -22,7 +23,7 @@ class ApMenu:
 		self.menu_stat = MENU_ONMENU
 		self.stat_chage = True
 
-		self.menu_item = ["PLAY","STOP","CANCEL"]
+		self.menu_item = ["PLAY","STOP","CANCEL","WEATHER","NEWS"]
 		self.station_list = []
 		self.menu_cursor = 0
 		self.current_station = 0
@@ -34,6 +35,8 @@ class ApMenu:
 		self.kakasi.setMode('K', 'a')
 		self.kakasi.setMode('J', 'a')
 		self.conv = self.kakasi.getConverter()
+		
+		self.yukkuri = Yukkuri()
 		return
 
 	def get_playlist(self):
@@ -42,7 +45,7 @@ class ApMenu:
 		for music in list:
 			if music != "":
 				self.station_list.append(music)
-				print(music)
+				#print(music)
 				
 	def pickup_first_line(self,string):
 		regex=re.compile('.*\n')
@@ -98,6 +101,11 @@ class ApMenu:
 			
 			self.loop1+=1
 		return
+
+	def check_mpc_status(self):
+		ret = self.proc_cmd("mpc")
+		match = '[playing]' in ret
+		return match
 
 	def mode_onmenu(self,cnt,x,y,button):
 		if y != 0:
@@ -161,6 +169,23 @@ class ApMenu:
 			elif self.menu_item[self.menu_cursor] == "CANCEL":
 				self.menu_stat = MENU_PLAYING
 				self.stat_chage = True
+			elif self.menu_item[self.menu_cursor] == "WEATHER":
+				play_stat = self.check_mpc_status()
+				if play_stat:
+					self.proc_cmd("mpc stop")
+				#self.yukkuri.wether_speach()
+				self.yukkuri.dayofweek_info_speach()
+				if play_stat:
+					self.proc_cmd("mpc play")
+			elif self.menu_item[self.menu_cursor] == "NEWS":
+				play_stat = self.check_mpc_status()
+				if play_stat:
+					self.proc_cmd("mpc stop")
+				self.yukkuri.rss_speach("http://www.inoreader.com/stream/user/1006435756/tag/%E8%89%A6%E3%81%93%E3%82%8C")
+				self.yukkuri.rss_speach("https://news.google.com/news?hl=ja&ned=us&ie=UTF-8&oe=UTF-8&output=rss&topic=po")
+				self.yukkuri.rss_speach("https://news.google.com/news?hl=ja&ned=us&ie=UTF-8&oe=UTF-8&output=rss&topic=w")
+				if play_stat:
+					self.proc_cmd("mpc play")
 		
 		return
 
