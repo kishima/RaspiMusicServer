@@ -1,7 +1,7 @@
 # RaspiMusicServer
 
 This an music server on Raspeberry pi with Grovepi and Arduino.
-The server plays music by mpc and can be controlled by a joystick, a button. Audio volume can be changed by a slide bar.
+The server plays music by mpc and can be controlled by either a joystick, a button or gesture. Audio volume can be changed by a slide bar.
 Power supply is managed by Arduino with a button safely. We don't need to take care of timing of turning on/off Raspi.
 
 ![Schematic](https://github.com/kishima/RaspiMusicServer/blob/master/Picture_surface.jpg)
@@ -27,6 +27,10 @@ Power supply is managed by Arduino with a button safely. We don't need to take c
   - http://wiki.seeed.cc/Grove-Slide_Potentiometer/
 - Grove - Thumb Joystick
   - http://wiki.seeed.cc/Grove-Thumb_Joystick/
+- Grove - Gesture V1.0
+  - http://wiki.seeed.cc/Grove-Gesture_v1.0/
+- Motion detection sensor
+  - https://www.amazon.co.jp/dp/B00HG82S9U/ref=cm_sw_r_tw_dp_x_tRURzb390VVFQ
 
 ## Software
 
@@ -47,7 +51,7 @@ arduino/control_power.ino shall be loaded into Arduino.
 4. Music server application
 "audioserver/run.sh" shall be from cron by pi user.
 
-5. Connect either a speaker or a DAC
+5. Connect either a speaker or a DAC. 
 I connected a USB DAC.
 http://akizukidenshi.com/catalog/g/gK-05369/
 
