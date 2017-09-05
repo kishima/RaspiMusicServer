@@ -53,13 +53,14 @@ class MusicServer:
 				button_stat=0
 				x=0
 				y=0
+				ges=0
 				
 				if 0 == cnt % 4 : #50ms*4=200ms
 					self.motion.check_status()
 					self.volume.volume_check()
 
 				if 0 == cnt % 2 : #50ms*2=100ms
-					self.gesture.print_gesture()
+					ges = self.gesture.return_gesture()
 					
 					current_button_stat = self.button.get_button_stat()
 					if last_button_stat == 0 and current_button_stat == 1:
@@ -74,7 +75,10 @@ class MusicServer:
 					last_x,last_y = current_x,current_y
 		
 				self.volume.led_update(cnt)
-				self.menu.update(cnt,x,y,button_stat)
+				self.menu.update(cnt,x,y,button_stat,ges)
+				
+				if ges != 0:
+					self.gesture.return_gesture() #in order to avoid delayed gesture input events
 				
 				if 0 == cnt % 20:
 					self.timer.check_event()

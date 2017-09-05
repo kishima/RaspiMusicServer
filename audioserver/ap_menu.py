@@ -7,6 +7,7 @@ import subprocess
 import re
 from pykakasi import kakasi
 from arduino_timer import Yukkuri
+import grove_gesture_sensor
 
 MENU_IDLE    = 0
 MENU_PLAYING = 1
@@ -66,20 +67,20 @@ class ApMenu:
 		stdout_data, stderr_data = p.communicate()
 		return self.conv.do(stdout_data.decode('utf-8'))
 	
-	def update(self,cnt,x,y,button):
+	def update(self,cnt,x,y,button,ges):
 		if self.menu_stat == MENU_IDLE:
-			self.mode_idle(cnt,x,y,button)
+			self.mode_idle(cnt,x,y,button,ges)
 		elif self.menu_stat == MENU_PLAYING:
-			self.mode_playing(cnt,x,y,button)
+			self.mode_playing(cnt,x,y,button,ges)
 		elif self.menu_stat == MENU_ONMENU:
-			self.mode_onmenu(cnt,x,y,button)
+			self.mode_onmenu(cnt,x,y,button,ges)
 		return
 		
-	def mode_idle(self,cnt,x,y,button):
+	def mode_idle(self,cnt,x,y,button,ges):
 		return
 
-	def mode_playing(self,cnt,x,y,button):
-		if x!=0 or y!=0 or button != 0:
+	def mode_playing(self,cnt,x,y,button,ges):
+		if x!=0 or y!=0 or button != 0 or ges == grove_gesture_sensor.gesture.FORWARD:
 			self.menu_stat = MENU_ONMENU
 			self.stat_chage = True
 			self.menu_timeout = 20*5
@@ -100,6 +101,15 @@ class ApMenu:
 				self.led.put_text(self.mpdstat[self.loop1:])
 			
 			self.loop1+=1
+			
+		if ges == grove_gesture_sensor.gesture.CLOCKWISE:
+			play_stat = self.check_mpc_status()
+			if play_stat:
+				self.proc_cmd("mpc stop")
+			self.yukkuri.wether_speach()
+			if play_stat:
+				self.proc_cmd("mpc play")
+
 		return
 
 	def check_mpc_status(self):
@@ -107,17 +117,30 @@ class ApMenu:
 		match = '[playing]' in ret
 		return match
 
-	def mode_onmenu(self,cnt,x,y,button):
+	def mode_onmenu(self,cnt,x,y,button,ges):
 		if y != 0:
 			x = 0
 		condition_update = False
 
-		if x!=0 or y!=0 or button != 0:
+		if x!=0 or y!=0 or button != 0 or ges != 0:
 			self.menu_timeout = self.MENU_TIMEOUT_SET
 
 		self.menu_timeout -= 1
 		if self.menu_timeout <= 0:
 			self.menu_stat = MENU_PLAYING
+
+		if ges == grove_gesture_sensor.gesture.FORWARD:
+			button = 1
+
+		if ges == grove_gesture_sensor.gesture.UP:
+			y = -1
+		if ges == grove_gesture_sensor.gesture.DOWN:
+			y = 1
+		if ges == grove_gesture_sensor.gesture.RIGHT:
+			x = 1
+		if ges == grove_gesture_sensor.gesture.LEFT:
+			x = -1
+
 
 		if self.stat_chage:
 			#menu will be updated when state is changed
