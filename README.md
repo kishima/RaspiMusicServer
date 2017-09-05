@@ -62,3 +62,9 @@ Following is schematic of the server.
 
 ![Schematic](https://github.com/kishima/RaspiMusicServer/blob/master/schematic.PNG)
 
+## License
+
+This software is released under the MIT License, see LICENSE.
+
+"grove_gesture_sensor.py" is
+Copyright (C) 2017  Dexter Industries
