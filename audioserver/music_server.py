@@ -14,63 +14,68 @@ import grove_gesture_sensor
 
 logging.basicConfig(level=logging.DEBUG,format='%(asctime)s (%(threadName)-10s) %(message)s',)
 
-lcd = ap_lcd.ApLcd()
-lcd.set_bg_rgb(0,50,0)
-lcd.start()
-gesture   = grove_gesture_sensor.gesture()
-gesture.init()
-joystick  = ap_joystick.ApJoystick(pinX=1,pinY=0)
-button    = ap_button.ApButton(pin=3)
-volume    = ap_volume.ApVolume(barPin=2,ledPin=17,display_obj=lcd)
-motion    = ap_motion_detect.ApMotionDetect(gpio_pin=23)
-timer     = arduino_timer.ArduinoTimer(motion)
-timer.set_timer_once()
+class MusicServer:
+	
+	def __init__(self):
+		self.lcd = ap_lcd.ApLcd()
+		self.lcd.set_bg_rgb(0,50,0)
+		self.lcd.start()
+		self.gesture   = grove_gesture_sensor.gesture()
+		self.gesture.init()
+		self.joystick  = ap_joystick.ApJoystick(pinX=1,pinY=0)
+		self.button    = ap_button.ApButton(pin=3)
+		self.volume    = ap_volume.ApVolume(barPin=2,ledPin=17,display_obj=self.lcd)
+		self.motion    = ap_motion_detect.ApMotionDetect(gpio_pin=23)
+		self.timer     = arduino_timer.ArduinoTimer(self.motion)
+		self.timer.set_timer_once()
 
-menu = ap_menu.ApMenu(lcd,volume)
+		self.menu = ap_menu.ApMenu(self.lcd,self.volume)
+		time.sleep(0.1)
 
-cnt = 0
-last_button_stat = 0
-last_x = 0
-last_y = 0
+	def main_loop(self):
+		cnt = 0
+		last_button_stat = 0
+		last_x = 0
+		last_y = 0
+		while True:
+			try:
+				button_stat=0
+				x=0
+				y=0
+				
+				if 0 == cnt % 4 : #50ms*4=200ms
+					self.motion.check_status()
+					self.volume.volume_check()
 
-time.sleep(0.1)
-
-while True:
-	try:
-		button_stat=0
-		x=0
-		y=0
+				if 0 == cnt % 2 : #50ms*2=100ms
+					self.gesture.print_gesture()
+					
+					current_button_stat = self.button.get_button_stat()
+					if last_button_stat == 0 and current_button_stat == 1:
+						button_stat = 1
+					last_button_stat = current_button_stat
+					
+					current_x,current_y = self.joystick.get_axis()
+					if last_x == 0 and current_x != 0:
+						x = current_x
+					if last_y == 0 and current_y != 0:
+						y = current_y
+					last_x,last_y = current_x,current_y
 		
-		if 0 == cnt % 4 : #50ms*4=200ms
-			motion.check_status()
-			volume.volume_check()
-
-		if 0 == cnt % 2 : #50ms*2=100ms
-			gesture.print_gesture()
-			
-			current_button_stat = button.get_button_stat()
-			if last_button_stat == 0 and current_button_stat == 1:
-				button_stat = 1
-			last_button_stat = current_button_stat
-			
-			current_x,current_y = joystick.get_axis()
-			if last_x == 0 and current_x != 0:
-				x = current_x
-			if last_y == 0 and current_y != 0:
-				y = current_y
-			last_x,last_y = current_x,current_y
-
-		volume.led_update(cnt)
-		menu.update(cnt,x,y,button_stat)
+				self.volume.led_update(cnt)
+				self.menu.update(cnt,x,y,button_stat)
+				
+				if 0 == cnt % 20:
+					self.timer.check_event()
 		
-		if 0 == cnt % 20:
-			timer.check_event()
+				cnt+=1
+				if cnt>30000 :
+					cnt = 0
 		
-		cnt+=1
-		if cnt>30000 :
-			cnt = 0
+				time.sleep(0.05)
+		
+			except IOError:
+				logging.debug ("IOError")
 
-		time.sleep(0.05)
-
-	except IOError:
-		logging.debug ("IOError")
+music_server = MusicServer()
+music_server.main_loop()
