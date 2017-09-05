@@ -10,14 +10,17 @@ import ap_button
 import ap_menu
 import ap_motion_detect
 import arduino_timer
+import grove_gesture_sensor
 
 logging.basicConfig(level=logging.DEBUG,format='%(asctime)s (%(threadName)-10s) %(message)s',)
 
 lcd = ap_lcd.ApLcd()
 lcd.set_bg_rgb(0,50,0)
 lcd.start()
+gesture   = grove_gesture_sensor.gesture()
+gesture.init()
 joystick  = ap_joystick.ApJoystick(pinX=1,pinY=0)
-button    = ap_button.ApButton(pin=6)
+button    = ap_button.ApButton(pin=3)
 volume    = ap_volume.ApVolume(barPin=2,ledPin=17,display_obj=lcd)
 motion    = ap_motion_detect.ApMotionDetect(gpio_pin=23)
 timer     = arduino_timer.ArduinoTimer(motion)
@@ -30,6 +33,8 @@ last_button_stat = 0
 last_x = 0
 last_y = 0
 
+time.sleep(0.1)
+
 while True:
 	try:
 		button_stat=0
@@ -41,6 +46,8 @@ while True:
 			volume.volume_check()
 
 		if 0 == cnt % 2 : #50ms*2=100ms
+			gesture.print_gesture()
+			
 			current_button_stat = button.get_button_stat()
 			if last_button_stat == 0 and current_button_stat == 1:
 				button_stat = 1
@@ -66,4 +73,4 @@ while True:
 		time.sleep(0.05)
 
 	except IOError:
-		logging.debug ("Error")
+		logging.debug ("IOError")
