@@ -42,6 +42,8 @@ THE SOFTWARE.
 import time,sys
 import RPi.GPIO as GPIO
 import smbus
+import logging
+import time as timec
 
 # use the bus that matches your raspi version
 rev = GPIO.RPI_REVISION
@@ -360,6 +362,7 @@ class gesture:
 	
 	#Initialize the sensors
 	def init(self):
+		logging.debug("gesture init")
 		time.sleep(.001)
 		self.paj7620SelectBank(self.BANK0)
 		self.paj7620SelectBank(self.BANK0)
@@ -369,21 +372,30 @@ class gesture:
 		if self.debug:
 			print("data0:",data0,"data1:",data1)
 		if data0 != 0x20  :#or data1 <> 0x76:
-			print("Error with sensor")
+			logging.debug("Error with sensor")
 			#return 0xff
 		if data0 == 0x20:
-			print("wake-up finish.")
+			logging.debug("wake-up finish.")
 			
 		for i in range(len(self.initRegisterArray)):
 			self.paj7620WriteReg(self.initRegisterArray[i][0],self.initRegisterArray[i][1])
 		
 		self.paj7620SelectBank(self.BANK0)
 		
-		print("Paj7620 initialize register finished.")
+		logging.debug("Paj7620 initialize register finished.")
 		
 	#Write a byte to a register on the Gesture sensor
 	def paj7620WriteReg(self,addr,cmd):
-		bus.write_word_data(self.PAJ7620_ID, addr, cmd)
+		for num in range(1,5):
+			try:
+				bus.write_word_data(self.PAJ7620_ID, addr, cmd)
+			except IOError:
+				logging.debug("I2C IOerror in gesture > Retry")
+				timec.sleep(num)
+			else:
+				logging.debug("I2C write OK to gesture")
+				return
+		return
 		
 	#Select a register bank on the Gesture Sensor
 	def paj7620SelectBank(self,bank):
@@ -392,7 +404,17 @@ class gesture:
 			
 	#Read a block of bytes of length "qty" starting at address "addr" from the Gesture sensor
 	def paj7620ReadReg(self,addr,qty):
-		return bus.read_i2c_block_data(self.PAJ7620_ID, addr,qty)
+		ret=None
+		for num in range(1,5):
+			try:
+				ret = bus.read_i2c_block_data(self.PAJ7620_ID, addr,qty)
+			except IOError:
+				logging.debug("I2C IOerror in gesture > Retry")
+				timec.sleep(num)
+			else:
+				logging.debug("I2C write OK to gesture")
+				return ret
+		return ret
 	
 	#Print the values from the gesture sensor
 	def print_gesture(self):

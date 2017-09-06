@@ -15,32 +15,38 @@ import ap_motion_detect
 import arduino_timer
 import grove_gesture_sensor
 
-logging.basicConfig(level=logging.DEBUG,format='%(asctime)s (%(threadName)-10s) %(message)s',)
-
 class MusicServer:
 	
 	def __init__(self):
+		logging.basicConfig(level=logging.DEBUG,format='%(asctime)s (%(threadName)-10s) %(message)s',)
 		self.conf = ap_music_server_conf.MusicServerConfig()
 		self.lcd = ap_lcd.ApLcd()
 		self.lcd.set_bg_rgb(0,50,0)
 		self.lcd.start()
+		time.sleep(0.5)
 		self.gesture   = grove_gesture_sensor.gesture()
 		self.gesture.init()
+		time.sleep(0.5)
 		self.joystick  = ap_joystick.ApJoystick(pinX=1,pinY=0)
 		self.button    = ap_button.ApButton(pin=3)
 		self.volume    = ap_volume.ApVolume(barPin=2,ledPin=17,display_obj=self.lcd)
 		self.motion    = ap_motion_detect.ApMotionDetect(gpio_pin=23)
 		self.timer     = arduino_timer.ArduinoTimer(self.motion)
+		time.sleep(0.5)
 		self.timer.set_timer_once()
+		self.yukkuri = arduino_timer.Yukkuri()
+		self.yukkuri.play_welcome_msg()
 		signal.signal(signal.SIGINT, self.handler)
 
 		self.menu = ap_menu.ApMenu(self.lcd,self.volume)
+		logging.debug("MusicServer init end")
 		time.sleep(0.1)
 
 	def handler(self, signal, frame):
 		logging.debug('>>> signal detected <<<')
 		self.timer.send_cleartimer_request()
 		logging.debug('exit application')
+		time.sleep(0.5)
 		sys.exit(0)
 
 	def main_loop(self):
@@ -92,5 +98,6 @@ class MusicServer:
 			except IOError:
 				logging.debug ("IOError in main_loop")
 
+logging.debug("start music server")
 music_server = MusicServer()
 music_server.main_loop()

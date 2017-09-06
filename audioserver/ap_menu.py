@@ -46,7 +46,7 @@ class ApMenu:
 		for music in list:
 			if music != "":
 				self.station_list.append(music)
-				#print(music)
+				print("music",music)
 				
 	def pickup_first_line(self,string):
 		regex=re.compile('.*\n')
@@ -179,7 +179,7 @@ class ApMenu:
 			self.led.put_text(output)
 
 		if button==1:
-			print("button press")
+			logging.debug("button press: cursor="+str(self.menu_cursor))
 			if self.menu_item[self.menu_cursor] == "PLAY":
 				r = self.proc_cmd("mpc play "+str(self.current_station+1))
 				logging.debug(r)
@@ -196,8 +196,8 @@ class ApMenu:
 				play_stat = self.check_mpc_status()
 				if play_stat:
 					self.proc_cmd("mpc stop")
-				#self.yukkuri.wether_speach()
 				self.yukkuri.dayofweek_info_speach()
+				self.yukkuri.wether_speach()
 				if play_stat:
 					self.proc_cmd("mpc play")
 			elif self.menu_item[self.menu_cursor] == "NEWS":

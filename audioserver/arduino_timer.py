@@ -46,10 +46,13 @@ class Yukkuri:
 		
 			text = title
 			for weather in data["forecasts"]:
-				text += weather['dateLabel'] + u'は' + weather['telop'] + u'です。'
+				date = weather['date']
+				d = date.encode().split("-")
+				text += str(int(d[1])) +u"月"+ str(int(d[2]))+ u'日、' + weather['dateLabel'] + u'は' + weather['telop'] + u'です。'
 
+			d = data["forecasts"][0]['date'].encode().split("-")
 			max = data["forecasts"][0]['temperature']['max']['celsius']
-			text += u'今日の最高気温は、%s 度です。' % max
+			text += u'今日、'+str(int(d[1])) +u"月"+ str(int(d[2]))+ u'日、の最高気温は、%s 度です。' % max
 			min = data["forecasts"][0]['temperature']['min']['celsius']
 			text += u'最低気温は、%s 度です。' % min
 		except TypeError:
@@ -60,6 +63,9 @@ class Yukkuri:
 		feed = feedparser.parse(rss_url)
 		for e in feed.entries:
 			self.speach( e.title )
+
+	def play_welcome_msg(self):
+		self.speach(self.conf['welcome_msg'])
 
 
 class Schedule:
@@ -168,15 +174,21 @@ class ArduinoTimer():
 		logging.debug(data)
 		self.send_i2c_command(cmd,data)
 		return
+
+	def set_cmd(self,cmd,time):
+		data=[0,0,0,0]
+		logging.debug("cmd="+str(cmd))
+		self.send_i2c_command(cmd,data)
+		return
 	
 	def send_shutdown_request(self):
 		logging.debug('send_shutdown_request')
-		self.set_timer(self.CMD_SHUTDOWN_NOW,datetime.datetime.now())
+		self.set_cmd(self.CMD_SHUTDOWN_NOW,datetime.datetime.now())
 		return
 
 	def send_cleartimer_request(self):
 		logging.debug('send_cleartimer_request')
-		self.set_timer(self.CMD_CLEAR_TIMER,datetime.datetime.now())
+		self.set_cmd(self.CMD_CLEAR_TIMER,datetime.datetime.now())
 		return
 
 	def get_time(self,hour,min):
