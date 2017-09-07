@@ -5,6 +5,7 @@ import logging
 import smbus
 import time as timec
 import datetime
+from datetime import datetime as datetimec
 import json
 import urllib
 import pprint
@@ -69,11 +70,13 @@ class Yukkuri:
 
 
 class Schedule:
-	def __init__(self):
+	def __init__(self,motion_obj):
 		self.conf = ap_music_server_conf.MusicServerConfig().get_conf()
 		envfile = open(self.conf['schedule_file_path'], 'r')
 		self.data = json.load(envfile)
 		envfile.close()
+		
+		self.motion = motion_obj
 		self.yukkuri = Yukkuri()
 		self.read_data()
 		return
@@ -86,11 +89,13 @@ class Schedule:
 	def check_ex(self,timing):
 		if timing.get('excond')=='movement':
 			#if movement is active:
+			print("excond",self.motion.get_latest_status())
+			if self.motion.get_latest_status() > 2:
+				return True
 			return False
+			
+		#movement is not set
 		return True
-
-	def datetime_to_epoch(self,d):
-		return int(timec.mktime(d.timetuple()))
 		
 	def check_power_control(self,entry):
 		if entry['status']=='done':
@@ -101,53 +106,52 @@ class Schedule:
 			print("fire!")
 		return
 
-	def check_speech_control(self,data):
-		pass
+	def check_speech_control(self,entry):
+		if entry['action'] == "speech":
+			self.yukkuri.speech(entry['content']);
+		elif entry['action'] == "speech_weather":
+			self.yukkuri.wether_speech()
+		return
 
+	def check_basic_timer(self,timing,now,target):
+		t1 = ArduinoTimer.datetime_to_epoch(now)
+		t2 = ArduinoTimer.datetime_to_epoch(target)
+		#print(now)
+		#print(target)
+		#print("delta",abs(t1-t2))
+		
+		if t1 > t2:
+			if abs(t1-t2) < 60*10:
+				return self.check_ex(timing)
+			else:
+				if timing.get('excond')=='movement' and abs(t1-t2) < 60*60*3:
+					return False
+				return "done"
+		return False	
+	
 	def judge_timing(self,timing):
-		print(timing['type'])
+		#print(timing['type'])
 		now = datetime.datetime.now()
 		day = now.weekday()
 		
 		if timing['type']=='weekday' and day in {0,1,2,3,4}:
 			hour,min = timing['value'].split(':')
-			print(hour,min)
 			target = datetime.datetime(now.year,now.month,now.day,int(hour),int(min),0)
-			t1 = ArduinoTimer.datetime_to_epoch(now)
-			t2 = ArduinoTimer.datetime_to_epoch(target)
-			print(now)
-			print(target)
-			print("delta",abs(t1-t2))
-			if t1 > t2:
-				if abs(t1-t2) < 60*10:
-					return True
-				else:
-					return "done"
-			return False
-
+			return self.check_basic_timer(timing,now,target)
 		elif timing['type']=='weekend' and day in {5,6}:
 			hour,min = timing['value'].split(':')
 			target = datetime.datetime(now.year,now.month,now.day,int(hour),int(min),0)
-			t1 = ArduinoTimer.datetime_to_epoch(now)
-			t2 = ArduinoTimer.datetime_to_epoch(target)
-			print(now)
-			print(target)
-			print("delta",abs(t1-t2))
-			if t1 > t2:
-				if abs(t1-t2) < 60*10:
-					return True
-				else:
-					return "done"
-			return False
-		elif timing['type']=='point':
-			return True
+			return self.check_basic_timer(timing,now,target)
+		elif timing['type']=='onshot':
+			target = datetimec.strptime(timing['value'], '%Y/%m/%d %H:%M:%S')
+			return self.check_basic_timer(timing,now,target)
 		return False
 		
 	def check_entry(self,entry):
 		if entry['status'] == 'done':
 			return
 			
-		print(entry)
+		#print(entry)
 		fire = self.judge_timing(entry['timing'])
 		if fire == False:
 			return
@@ -180,7 +184,7 @@ class ArduinoTimer():
 		self.first_setting = False
 		self.event = [];
 		self.motion = motion_obj
-		self.schedule = Schedule()
+		self.schedule = Schedule(self.motion)
 		return
 		
 	@classmethod
