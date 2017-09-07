@@ -106,7 +106,7 @@ class ApMenu:
 			play_stat = self.check_mpc_status()
 			if play_stat:
 				self.proc_cmd("mpc stop")
-			self.yukkuri.wether_speach()
+			self.yukkuri.wether_speech()
 			if play_stat:
 				self.proc_cmd("mpc play")
 
@@ -196,17 +196,17 @@ class ApMenu:
 				play_stat = self.check_mpc_status()
 				if play_stat:
 					self.proc_cmd("mpc stop")
-				self.yukkuri.dayofweek_info_speach()
-				self.yukkuri.wether_speach()
+				self.yukkuri.dayofweek_info_speech()
+				self.yukkuri.wether_speech()
 				if play_stat:
 					self.proc_cmd("mpc play")
 			elif self.menu_item[self.menu_cursor] == "NEWS":
 				play_stat = self.check_mpc_status()
 				if play_stat:
 					self.proc_cmd("mpc stop")
-				self.yukkuri.rss_speach("http://www.inoreader.com/stream/user/1006435756/tag/%E8%89%A6%E3%81%93%E3%82%8C")
-				self.yukkuri.rss_speach("https://news.google.com/news?hl=ja&ned=us&ie=UTF-8&oe=UTF-8&output=rss&topic=po")
-				self.yukkuri.rss_speach("https://news.google.com/news?hl=ja&ned=us&ie=UTF-8&oe=UTF-8&output=rss&topic=w")
+				self.yukkuri.rss_speech("http://www.inoreader.com/stream/user/1006435756/tag/%E8%89%A6%E3%81%93%E3%82%8C")
+				self.yukkuri.rss_speech("https://news.google.com/news?hl=ja&ned=us&ie=UTF-8&oe=UTF-8&output=rss&topic=po")
+				self.yukkuri.rss_speech("https://news.google.com/news?hl=ja&ned=us&ie=UTF-8&oe=UTF-8&output=rss&topic=w")
 				if play_stat:
 					self.proc_cmd("mpc play")
 		

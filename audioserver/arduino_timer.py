@@ -24,18 +24,18 @@ class Yukkuri:
 		stdout_data, stderr_data = p.communicate()
 		return stdout_data
 
-	def speach(self,text):
-		cmd = self.conf['speach_api'] % text
+	def speech(self,text):
+		cmd = self.conf['speech_api'] % text
 		logging.debug(cmd)
 		self.send_cmmand(cmd)
 
-	def dayofweek_info_speach(self):
+	def dayofweek_info_speech(self):
 		weekday = datetime.datetime.now().weekday()
 		for d in self.conf['dayofweek_info']:
 			if d == str(weekday):
-				self.speach(self.conf['dayofweek_info'][d])
+				self.speech(self.conf['dayofweek_info'][d])
 
-	def wether_speach(self):
+	def wether_speech(self):
 		url = 'http://weather.livedoor.com/forecast/webservice/json/v1'
 		payload = { 'city' : self.conf['city_id'] }
 		data = requests.get(url, params = payload).json()
@@ -57,20 +57,21 @@ class Yukkuri:
 			text += u'最低気温は、%s 度です。' % min
 		except TypeError:
 			print("No temp in data")
-		self.speach(text)
+		self.speech(text)
 
-	def rss_speach(self,rss_url):
+	def rss_speech(self,rss_url):
 		feed = feedparser.parse(rss_url)
 		for e in feed.entries:
-			self.speach( e.title )
+			self.speech( e.title )
 
 	def play_welcome_msg(self):
-		self.speach(self.conf['welcome_msg'])
+		self.speech(self.conf['welcome_msg'])
 
 
 class Schedule:
 	def __init__(self):
-		envfile = open('schedule/schedule.json', 'r')
+		self.conf = ap_music_server_conf.MusicServerConfig().get_conf()
+		envfile = open(self.conf['schedule_file_path'], 'r')
 		self.data = json.load(envfile)
 		envfile.close()
 		self.yukkuri = Yukkuri()
@@ -88,16 +89,9 @@ class Schedule:
 			return False
 		return True
 
-	def judge_timing(self,timing):
-		print(timing['type'])
-		if timing['type']=='weekday' and self.check_ex(timing):
-			return True
-		elif timing['type']=='weekend':
-			return False
-		elif timing['type']=='point':
-			return True
-		return False
-
+	def datetime_to_epoch(self,d):
+		return int(timec.mktime(d.timetuple()))
+		
 	def check_power_control(self,entry):
 		if entry['status']=='done':
 			return
@@ -105,24 +99,72 @@ class Schedule:
 		if fire:
 			print(entry)
 			print("fire!")
-			entry['status'] = 'done'
 		return
 
-	def check_speach_control(self,data):
-		self.judge_timing(data['timing'])
+	def check_speech_control(self,data):
+		pass
 
-	def check_entry(self,data):
-		if data['type']=='power': #power control
-			self.check_power_control(data)
-		elif data['type']=='speach': #speach control
-			self.check_speach_control(data)
+	def judge_timing(self,timing):
+		print(timing['type'])
+		now = datetime.datetime.now()
+		day = now.weekday()
+		
+		if timing['type']=='weekday' and day in {0,1,2,3,4}:
+			hour,min = timing['value'].split(':')
+			print(hour,min)
+			target = datetime.datetime(now.year,now.month,now.day,int(hour),int(min),0)
+			t1 = ArduinoTimer.datetime_to_epoch(now)
+			t2 = ArduinoTimer.datetime_to_epoch(target)
+			print(now)
+			print(target)
+			print("delta",abs(t1-t2))
+			if t1 > t2:
+				if abs(t1-t2) < 60*10:
+					return True
+				else:
+					return "done"
+			return False
+
+		elif timing['type']=='weekend' and day in {5,6}:
+			hour,min = timing['value'].split(':')
+			target = datetime.datetime(now.year,now.month,now.day,int(hour),int(min),0)
+			t1 = ArduinoTimer.datetime_to_epoch(now)
+			t2 = ArduinoTimer.datetime_to_epoch(target)
+			print(now)
+			print(target)
+			print("delta",abs(t1-t2))
+			if t1 > t2:
+				if abs(t1-t2) < 60*10:
+					return True
+				else:
+					return "done"
+			return False
+		elif timing['type']=='point':
+			return True
+		return False
+		
+	def check_entry(self,entry):
+		if entry['status'] == 'done':
+			return
+			
+		print(entry)
+		fire = self.judge_timing(entry['timing'])
+		if fire == False:
+			return
+		elif fire == "done":
+			entry['status'] = 'done'
+			return
+
+		if entry['type']=='power': #power control
+			self.check_power_control(entry)
+		elif entry['type']=='speech': #speech control
+			self.check_speech_control(entry)
+		entry['status'] = 'done'
 		
 	def update(self):
-		
-		#for en in self.data:
-		#	self.check_entry(self.data[en])
-		
-		#reload
+		for entry in self.data:
+			#print("check_entry",entry)
+			self.check_entry(self.data[entry])
 		return
 
 class ArduinoTimer():
@@ -141,9 +183,11 @@ class ArduinoTimer():
 		self.schedule = Schedule()
 		return
 		
+	@classmethod
 	def datetime_to_epoch(self,d):
 		return int(timec.mktime(d.timetuple()))
 
+	@classmethod
 	def epoch_to_datetime(self,epoch):
 		return datetime(*timec.localtime(epoch)[:6])
 	
@@ -213,9 +257,9 @@ class ArduinoTimer():
 		t1 = self.get_time(7,00)
 		self.set_timer(self.CMD_SET_WAKUP_TIMER01,t1)
 
-		self.event.append( self.get_time( 7,05))
-		self.event.append( self.get_time( 2,49))
-		self.event.append( self.get_time( 8,30))
+		#self.event.append( self.get_time( 7,05))
+		#self.event.append( self.get_time( 2,49))
+		#self.event.append( self.get_time( 8,30))
 
 		self.first_setting = True
 		return
