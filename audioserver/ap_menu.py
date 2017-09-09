@@ -9,6 +9,7 @@ from pykakasi import kakasi
 from arduino_timer import Yukkuri
 import grove_gesture_sensor
 import ap_music
+import ap_music_server_conf
 
 MENU_IDLE    = 0
 MENU_PLAYING = 1
@@ -18,6 +19,7 @@ class ApMenu:
 	MENU_TIMEOUT_SET = 20*5
 	
 	def __init__(self,ledobj,volumebj):
+		self.conf = ap_music_server_conf.MusicServerConfig().get_conf()
 		self.loop1 = 0
 		self.led = ledobj
 		self.volume = volumebj
@@ -177,9 +179,9 @@ class ApMenu:
 			
 			elif self.menu_item[self.menu_cursor] == "NEWS":
 				def local_yukkuri():
-					self.yukkuri.rss_speech("http://www.inoreader.com/stream/user/1006435756/tag/%E8%89%A6%E3%81%93%E3%82%8C")
-					self.yukkuri.rss_speech("https://news.google.com/news?hl=ja&ned=us&ie=UTF-8&oe=UTF-8&output=rss&topic=po")
-					self.yukkuri.rss_speech("https://news.google.com/news?hl=ja&ned=us&ie=UTF-8&oe=UTF-8&output=rss&topic=w")
+					self.yukkuri.rss_speech(self.conf['rss01'])
+					self.yukkuri.rss_speech(self.conf['rss02'])
+					self.yukkuri.rss_speech(self.conf['rss03'])
 				self.music.mute_play_action(local_yukkuri)
 		
 		return
