@@ -1,0 +1,18 @@
+{
+    "speech_api": "/home/pi/xxx/AquesTalkPi -g 10 '%s' | aplay -D plughw:1,0",
+    "city_id": "000000",
+    "schedule_file_path": "schedule/schedule.json",
+    "welcome_msg":"get started",
+    "rss01":"https://headlines.yahoo.co.jp/rss/bbc-c_int.xml",
+    "rss02":"https://headlines.yahoo.co.jp/rss/bbc-c_int.xml",
+    "rss03":"https://headlines.yahoo.co.jp/rss/bbc-c_int.xml",
+    "dayofweek_info": {
+        "0":"Monday",
+        "1":"Tuesday",
+        "2":"Wednesday",
+        "3":"Thursday",
+        "4":"Fryday",
+        "5":"Saturday",
+        "6":"Sunday"
+     }
+}
