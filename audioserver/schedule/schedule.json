@@ -1,55 +1,76 @@
 {
-"entry1":{
-	"name": "wakeup",
+"entry_wakeup":{
+	"comment":"",
 	"type": "power",
+	"action": "wakeup",
 	"status": "not yet",
 	"timing": {
 		"type":"everyday",
-		"value":"06:30"
+		"value":"07:00"
 		}
 },
-"entry1-2":{
-	"name": "test",
+"entry_shutdown":{
+	"comment":"",
+	"type": "power",
+	"action": "shutdown",
+	"status": "not yet",
+	"timing": {
+		"type":"everyday",
+		"value":"03:00"
+		}
+},
+"entry_shutdown2":{
+	"comment":"",
+	"type": "power",
+	"action": "shutdown",
+	"status": "not yet",
+	"timing": {
+		"type":"weekday",
+		"value":"10:00"
+		}
+},
+"entry01":{
+	"comment":"",
 	"type": "speech",
+	"action": "speech_weather",
 	"status": "not yet",
 	"timing": {
 		"type":"weekday",
 		"value":"07:30",
 		"excond":"movement"
-		},
-	"action": "speech_weather"
+		}
 },
-"entry1-3":{
-	"name": "good morning",
+"entry02":{
+	"comment":"",
 	"type": "speech",
+	"action": "speech",
+	"content": "good morning",
 	"status": "not yet",
 	"timing": {
 		"type":"onshot",
 		"value":"2017/09/08 08:29:00"
-		},
-	"action": "speech",
-	"content": "おはようございます" 
+		}
 },
-"entry2":{
-	"name": "shutdown",
-	"type": "power",
+"entry03":{
+	"comment":"",
+	"type": "music",
+	"action": "play",
+	"content": "1",
 	"status": "not yet",
 	"timing": {
-		"type":"weekend",
-		"value":"17:00"
-		},
-	"action": "off" 
+		"type":"everyday",
+		"value":"14:58"
+		}
 },
-"entry3":{
-	"name": "speech",
-	"type": "speech",
-	"status": "not yet",
+"end_of_entry":{
+	"comment":"please keep it on the end of entries for making it easy to add a new entry",
+	"type": "dummy",
+	"action": "dummy",
+	"status": "done",
 	"timing": {
-		"type":"weekday",
-		"value":"02:00"
-		},
-	"action": "on" 
+		"type":"everyday",
+		"value":"00:00"
+		}
 }
 
 }
-

@@ -32,7 +32,7 @@ class ApMusic:
 		self.proc_cmd("mpc stop")
 
 	def next(self):
-		self.proc_cmd("mpc stop")
+		self.proc_cmd("mpc next")
 
 	def get_playlist(self):
 		s = self.proc_cmd("mpc playlist")

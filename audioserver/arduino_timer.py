@@ -12,8 +12,10 @@ import pprint
 import sys
 import subprocess
 import requests
-import ap_music_server_conf
 import feedparser
+
+import ap_music_server_conf
+import ap_music
 
 class Yukkuri:
 	def __init__(self):
@@ -70,19 +72,16 @@ class Yukkuri:
 
 
 class Schedule:
-	def __init__(self,motion_obj):
+	def __init__(self,motion_obj,timer_obj):
 		self.conf = ap_music_server_conf.MusicServerConfig().get_conf()
 		envfile = open(self.conf['schedule_file_path'], 'r')
 		self.data = json.load(envfile)
 		envfile.close()
 		
+		self.timer = timer_obj
 		self.motion = motion_obj
 		self.yukkuri = Yukkuri()
-		self.read_data()
-		return
-
-	def read_data(self):
-		#print(self.data['entry'])
+		self.music = ap_music.ApMusic()
 		
 		return
 
@@ -100,28 +99,35 @@ class Schedule:
 	def check_power_control(self,entry):
 		if entry['status']=='done':
 			return
-		fire = self.judge_timing(entry['timing'])
-		if fire:
-			print(entry)
-			print("fire!")
+		if entry['action']=='shutdown':
+			logging.debug("**************************")
+			logging.debug("*** shutdown RasPi now ***")
+			logging.debug("**************************")
+			self.timer.send_shutdown_request()
+			entry['status']='done'
+			return
 		return
 
 	def check_speech_control(self,entry):
 		if entry['action'] == "speech":
-			self.yukkuri.speech(entry['content']);
+			self.yukkuri.speech(entry['content'])
 		elif entry['action'] == "speech_weather":
 			self.yukkuri.wether_speech()
+		return
+
+	def check_music_control(self,entry):
+		if entry['action'] == "play":
+			self.music.play(entry['content'])
+		elif entry['action'] == "stop":
+			self.music.stop()
 		return
 
 	def check_basic_timer(self,timing,now,target):
 		t1 = ArduinoTimer.datetime_to_epoch(now)
 		t2 = ArduinoTimer.datetime_to_epoch(target)
-		#print(now)
-		#print(target)
-		#print("delta",abs(t1-t2))
 		
 		if t1 > t2:
-			if abs(t1-t2) < 60*10:
+			if abs(t1-t2) < 60*1: #allow 60sec diff
 				return self.check_ex(timing)
 			else:
 				if timing.get('excond')=='movement' and abs(t1-t2) < 60*60*3:
@@ -130,7 +136,6 @@ class Schedule:
 		return False	
 	
 	def judge_timing(self,timing):
-		#print(timing['type'])
 		now = datetime.datetime.now()
 		day = now.weekday()
 		
@@ -150,7 +155,6 @@ class Schedule:
 		if entry['status'] == 'done':
 			return
 			
-		#print(entry)
 		fire = self.judge_timing(entry['timing'])
 		if fire == False:
 			return
@@ -162,6 +166,8 @@ class Schedule:
 			self.check_power_control(entry)
 		elif entry['type']=='speech': #speech control
 			self.check_speech_control(entry)
+		elif entry['type']=='music': #speech control
+			self.check_music_control(entry)
 		entry['status'] = 'done'
 		
 	def update(self):
@@ -170,11 +176,12 @@ class Schedule:
 		return
 	
 	def get_wakeup_timer_request(self):
+		requests=[]
 		for entry in self.data:
 			d = self.data[entry]
-			if d['name'] =='wakeup' and d['type']=='power':
-				print(d['timing']['value'])
-		return
+			if d['action'] =='wakeup' and d['type']=='power':
+				requests.append(d['timing']['value'].split(":"))
+		return requests
 
 class ArduinoTimer():
 	ARDUINO_I2C_ADDR=0x10
@@ -187,9 +194,8 @@ class ArduinoTimer():
 		self.conf = ap_music_server_conf.MusicServerConfig().get_conf()
 		self.i2c = smbus.SMBus(1)
 		self.first_setting = False
-		self.event = [];
 		self.motion = motion_obj
-		self.schedule = Schedule(self.motion)
+		self.schedule = Schedule(self.motion,self)
 		return
 		
 	@classmethod
@@ -262,15 +268,12 @@ class ArduinoTimer():
 		if self.first_setting:
 			return
 		self.send_cleartimer_request()
-
-		self.schedule.get_wakeup_timer_request()
-
-		#t1 = self.get_time(7,00)
-		#self.set_timer(self.CMD_SET_WAKUP_TIMER01,t1)
-
-		#self.event.append( self.get_time( 7,05))
-		#self.event.append( self.get_time( 2,49))
-		#self.event.append( self.get_time( 8,30))
+		logging.debug("set wake up timer")
+		requests = self.schedule.get_wakeup_timer_request()
+		for req in requests:
+			t1 = self.get_time(int(req[0]),int(req[1]))
+			logging.debug(t1)
+			self.set_timer(self.CMD_SET_WAKUP_TIMER01,t1)
 
 		self.first_setting = True
 		return
@@ -281,9 +284,5 @@ class ArduinoTimer():
 		self.schedule.update()
 		return
 
-	def send_cmmand(self,cmd):
-		p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-		stdout_data, stderr_data = p.communicate()
-		return stdout_data
-
-
+	def p(self):
+		print("testestet")
