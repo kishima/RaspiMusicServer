@@ -7,6 +7,10 @@ Power supply is managed by Arduino with a button safely. We don't need to take c
 ![Schematic](https://github.com/kishima/RaspiMusicServer/blob/master/Picture_surface.jpg)
 ![Schematic](https://github.com/kishima/RaspiMusicServer/blob/master/Picture_in_Box.jpg)
 
+### Movie
+
+https://www.youtube.com/watch?v=xel442RrTm4
+
 ## Materials
 
 - Raspberry Pi3
