@@ -134,16 +134,15 @@ class Schedule:
 		now = datetime.datetime.now()
 		day = now.weekday()
 		
-		if timing['type']=='weekday' and day in {0,1,2,3,4}:
-			hour,min = timing['value'].split(':')
-			target = datetime.datetime(now.year,now.month,now.day,int(hour),int(min),0)
-			return self.check_basic_timer(timing,now,target)
-		elif timing['type']=='weekend' and day in {5,6}:
+		if    (timing['type']=='weekday' and day in {0,1,2,3,4}) \
+		   or (timing['type']=='weekend' and day in {5,6}) \
+		   or (timing['type']=='everyday'):
 			hour,min = timing['value'].split(':')
 			target = datetime.datetime(now.year,now.month,now.day,int(hour),int(min),0)
 			return self.check_basic_timer(timing,now,target)
 		elif timing['type']=='onshot':
 			target = datetimec.strptime(timing['value'], '%Y/%m/%d %H:%M:%S')
+			print("onshot",target)
 			return self.check_basic_timer(timing,now,target)
 		return False
 		
@@ -167,8 +166,14 @@ class Schedule:
 		
 	def update(self):
 		for entry in self.data:
-			#print("check_entry",entry)
 			self.check_entry(self.data[entry])
+		return
+	
+	def get_wakeup_timer_request(self):
+		for entry in self.data:
+			d = self.data[entry]
+			if d['name'] =='wakeup' and d['type']=='power':
+				print(d['timing']['value'])
 		return
 
 class ArduinoTimer():
@@ -257,9 +262,11 @@ class ArduinoTimer():
 		if self.first_setting:
 			return
 		self.send_cleartimer_request()
-		#self.load_schedule_file()
-		t1 = self.get_time(7,00)
-		self.set_timer(self.CMD_SET_WAKUP_TIMER01,t1)
+
+		self.schedule.get_wakeup_timer_request()
+
+		#t1 = self.get_time(7,00)
+		#self.set_timer(self.CMD_SET_WAKUP_TIMER01,t1)
 
 		#self.event.append( self.get_time( 7,05))
 		#self.event.append( self.get_time( 2,49))

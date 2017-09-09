@@ -4,11 +4,31 @@
 	"type": "power",
 	"status": "not yet",
 	"timing": {
+		"type":"everyday",
+		"value":"06:30"
+		}
+},
+"entry1-2":{
+	"name": "test",
+	"type": "speech",
+	"status": "not yet",
+	"timing": {
 		"type":"weekday",
-		"value":"07:00",
+		"value":"07:30",
 		"excond":"movement"
 		},
-	"action": "on" 
+	"action": "speech_weather"
+},
+"entry1-3":{
+	"name": "good morning",
+	"type": "speech",
+	"status": "not yet",
+	"timing": {
+		"type":"onshot",
+		"value":"2017/09/08 08:29:00"
+		},
+	"action": "speech",
+	"content": "おはようございます" 
 },
 "entry2":{
 	"name": "shutdown",
@@ -21,8 +41,8 @@
 	"action": "off" 
 },
 "entry3":{
-	"name": "speach",
-	"type": "speach",
+	"name": "speech",
+	"type": "speech",
 	"status": "not yet",
 	"timing": {
 		"type":"weekday",
