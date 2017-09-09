@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import json
+import logging
 
 class MusicServerConfig(object):
 	_instance = None
@@ -17,7 +18,7 @@ class MusicServerConfig(object):
 	def __init__(self):
 		if self._conf == None:
 			conf_file = open(self._conf_file_path, 'r')
-			print("open %s" % self._conf_file_path)
+			logging.debug("open %s" % self._conf_file_path)
 			self._conf = json.load(conf_file)
 			conf_file.close()
 	

@@ -15,10 +15,10 @@ import ap_motion_detect
 import arduino_timer
 import grove_gesture_sensor
 
+logging.basicConfig(level=logging.DEBUG,format='%(asctime)s (%(threadName)-10s) %(message)s',)
+
 class MusicServer:
-	
 	def __init__(self):
-		logging.basicConfig(level=logging.DEBUG,format='%(asctime)s (%(threadName)-10s) %(message)s',)
 		self.conf = ap_music_server_conf.MusicServerConfig()
 		self.lcd = ap_lcd.ApLcd()
 		self.lcd.set_bg_rgb(0,50,0)

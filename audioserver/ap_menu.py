@@ -8,6 +8,7 @@ import re
 from pykakasi import kakasi
 from arduino_timer import Yukkuri
 import grove_gesture_sensor
+import ap_music
 
 MENU_IDLE    = 0
 MENU_PLAYING = 1
@@ -20,6 +21,8 @@ class ApMenu:
 		self.loop1 = 0
 		self.led = ledobj
 		self.volume = volumebj
+
+		self.music = ap_music.ApMusic()
 		self.mpdstat = "" #mpd status
 		self.menu_stat = MENU_ONMENU
 		self.stat_chage = True
@@ -28,7 +31,12 @@ class ApMenu:
 		self.station_list = []
 		self.menu_cursor = 0
 		self.current_station = 0
-		self.get_playlist()
+		list = self.music.get_playlist()
+		for station in list:
+			if station != "":
+				self.station_list.append(station)
+				print("station",station)
+
 		self.menu_timeout = 0
 		
 		self.kakasi = kakasi()
@@ -40,33 +48,6 @@ class ApMenu:
 		self.yukkuri = Yukkuri()
 		return
 
-	def get_playlist(self):
-		s = self.proc_cmd("mpc playlist")
-		list = s.split('\n')
-		for music in list:
-			if music != "":
-				self.station_list.append(music)
-				print("music",music)
-				
-	def pickup_first_line(self,string):
-		regex=re.compile('.*\n')
-		m = regex.match(string)
-		if m:
-			position = m.span()
-			return string[position[0]:position[1]]
-		return string
-
-	def proc_cmd(self,cmd):
-		logging.debug(cmd)
-		p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-		stdout_data, stderr_data = p.communicate()
-		return stdout_data
-	
-	def check_mpd_status(self,cmd):
-		p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-		stdout_data, stderr_data = p.communicate()
-		return self.conv.do(stdout_data.decode('utf-8'))
-	
 	def update(self,cnt,x,y,button,ges):
 		if self.menu_stat == MENU_IDLE:
 			self.mode_idle(cnt,x,y,button,ges)
@@ -87,8 +68,9 @@ class ApMenu:
 			return
 
 		if 0 == cnt % 40 :
-			self.mpdstat = self.check_mpd_status("mpc")
-			self.mpdstat = self.pickup_first_line(self.mpdstat)
+			self.mpdstat = self.music.check_mpd_status()
+			self.mpdstat = self.conv.do(self.mpdstat)
+			self.mpdstat = self.music.pickup_first_line(self.mpdstat)
 			self.mpdstat = self.mpdstat.replace('\n','')
 			
 		if 0 == cnt % 10:
@@ -103,19 +85,14 @@ class ApMenu:
 			self.loop1+=1
 			
 		if ges == grove_gesture_sensor.gesture.CLOCKWISE:
-			play_stat = self.check_mpc_status()
+			play_stat = self.music.check_mpc_status()
 			if play_stat:
-				self.proc_cmd("mpc stop")
+				self.music.stop()
 			self.yukkuri.wether_speech()
 			if play_stat:
-				self.proc_cmd("mpc play")
+				self.music.play()
 
 		return
-
-	def check_mpc_status(self):
-		ret = self.proc_cmd("mpc")
-		match = '[playing]' in ret
-		return match
 
 	def mode_onmenu(self,cnt,x,y,button,ges):
 		if y != 0:
@@ -181,34 +158,29 @@ class ApMenu:
 		if button==1:
 			logging.debug("button press: cursor="+str(self.menu_cursor))
 			if self.menu_item[self.menu_cursor] == "PLAY":
-				r = self.proc_cmd("mpc play "+str(self.current_station+1))
+				r = self.music.play(str(self.current_station+1))
 				logging.debug(r)
 			elif self.menu_item[self.menu_cursor] == "STOP":
-				r = self.proc_cmd("mpc stop")
+				r = self.music.stop()
 				logging.debug(r)
 			elif self.menu_item[self.menu_cursor] == "NEXT":
-				r = self.proc_cmd("mpc next")
+				r = self.music.next()
 				logging.debug(r)
 			elif self.menu_item[self.menu_cursor] == "CANCEL":
 				self.menu_stat = MENU_PLAYING
 				self.stat_chage = True
 			elif self.menu_item[self.menu_cursor] == "WEATHER":
-				play_stat = self.check_mpc_status()
-				if play_stat:
-					self.proc_cmd("mpc stop")
-				self.yukkuri.dayofweek_info_speech()
-				self.yukkuri.wether_speech()
-				if play_stat:
-					self.proc_cmd("mpc play")
+				def local_yukkuri():
+					self.yukkuri.dayofweek_info_speech()
+					self.yukkuri.wether_speech()
+				self.music.mute_play_action(local_yukkuri)
+			
 			elif self.menu_item[self.menu_cursor] == "NEWS":
-				play_stat = self.check_mpc_status()
-				if play_stat:
-					self.proc_cmd("mpc stop")
-				self.yukkuri.rss_speech("http://www.inoreader.com/stream/user/1006435756/tag/%E8%89%A6%E3%81%93%E3%82%8C")
-				self.yukkuri.rss_speech("https://news.google.com/news?hl=ja&ned=us&ie=UTF-8&oe=UTF-8&output=rss&topic=po")
-				self.yukkuri.rss_speech("https://news.google.com/news?hl=ja&ned=us&ie=UTF-8&oe=UTF-8&output=rss&topic=w")
-				if play_stat:
-					self.proc_cmd("mpc play")
+				def local_yukkuri():
+					self.yukkuri.rss_speech("http://www.inoreader.com/stream/user/1006435756/tag/%E8%89%A6%E3%81%93%E3%82%8C")
+					self.yukkuri.rss_speech("https://news.google.com/news?hl=ja&ned=us&ie=UTF-8&oe=UTF-8&output=rss&topic=po")
+					self.yukkuri.rss_speech("https://news.google.com/news?hl=ja&ned=us&ie=UTF-8&oe=UTF-8&output=rss&topic=w")
+				self.music.mute_play_action(local_yukkuri)
 		
 		return
 

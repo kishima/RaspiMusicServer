@@ -393,7 +393,7 @@ class gesture:
 				logging.debug("I2C IOerror in gesture > Retry")
 				timec.sleep(num)
 			else:
-				logging.debug("I2C write OK to gesture")
+				#logging.debug("I2C write OK to gesture")
 				return
 		return
 		
@@ -412,7 +412,7 @@ class gesture:
 				logging.debug("I2C IOerror in gesture > Retry")
 				timec.sleep(num)
 			else:
-				logging.debug("I2C write OK to gesture")
+				#logging.debug("I2C write OK to gesture")
 				return ret
 		return ret
 	
