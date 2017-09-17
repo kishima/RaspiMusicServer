@@ -18,18 +18,19 @@ MENU_ONMENU  = 2
 class ApMenu:
 	MENU_TIMEOUT_SET = 20*5
 	
-	def __init__(self,ledobj,volumebj):
+	def __init__(self,ledobj,volumebj,timerobj):
 		self.conf = ap_music_server_conf.MusicServerConfig().get_conf()
 		self.loop1 = 0
 		self.led = ledobj
 		self.volume = volumebj
+		self.timer = timerobj
 
 		self.music = ap_music.ApMusic()
 		self.mpdstat = "" #mpd status
 		self.menu_stat = MENU_ONMENU
 		self.stat_chage = True
 
-		self.menu_item = ["PLAY","STOP","CANCEL","WEATHER","NEWS"]
+		self.menu_item = ["PLAY","STOP","CANCEL","RELOAD","WEATHER","NEWS"]
 		self.station_list = []
 		self.menu_cursor = 0
 		self.current_station = 0
@@ -95,6 +96,9 @@ class ApMenu:
 				self.music.play()
 
 		return
+
+	def reload_schedule(self):
+		self.timer.reload_schedule()
 
 	def mode_onmenu(self,cnt,x,y,button,ges):
 		if y != 0:
@@ -171,6 +175,8 @@ class ApMenu:
 			elif self.menu_item[self.menu_cursor] == "CANCEL":
 				self.menu_stat = MENU_PLAYING
 				self.stat_chage = True
+			elif self.menu_item[self.menu_cursor] == "RELOAD":
+				self.reload_schedule()
 			elif self.menu_item[self.menu_cursor] == "WEATHER":
 				def local_yukkuri():
 					self.yukkuri.dayofweek_info_speech()

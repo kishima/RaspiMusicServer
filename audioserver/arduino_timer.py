@@ -185,8 +185,10 @@ class Schedule:
 
 class ArduinoTimer():
 	ARDUINO_I2C_ADDR=0x10
-	CMD_SET_WAKUP_TIMER01    = 0x11
-	CMD_SET_WAKUP_TIMER02    = 0x12
+	CMD_SET_WAKUP_TIMER01A    = 0x11
+	CMD_SET_WAKUP_TIMER01B    = 0x12
+	CMD_SET_WAKUP_TIMER02A    = 0x21
+	CMD_SET_WAKUP_TIMER02B    = 0x22
 	CMD_CLEAR_TIMER          = 0x40
 	CMD_SHUTDOWN_NOW         = 0xFF
 
@@ -218,24 +220,31 @@ class ArduinoTimer():
 				return True
 		return Flase
 	
-	def set_timer(self,cmd,time):
+	def set_timer(self,time):
 		target = self.datetime_to_epoch(time)
 		diff = target - int(timec.time())
-		data=[0,0,0,0]
-		data[0]= 0 #(diff & 0xFF000000)>>24
-		data[1]= (diff & 0x00FF0000)>>16
-		data[2]= (diff & 0x0000FF00)>>8
-		data[3]= diff & 0x000000FF
+		data1=[0,0]
+		data2=[0,0]
+		data1[0] = int((diff & 0xFF000000)>>24)
+		data1[1] = (diff & 0x00FF0000)>>16
+		data2[0] = (diff & 0x0000FF00)>>8
+		data2[1] =  diff & 0x000000FF
 		
 		if diff<0:
 			return
-		logging.debug("cmd="+str(cmd))
-		logging.debug(data)
-		self.send_i2c_command(cmd,data)
+		cmd = self.CMD_SET_WAKUP_TIMER01A
+		logging.debug("cmd="+str(cmd)+"  diff="+str(diff))
+		logging.debug(data1)
+		self.send_i2c_command(cmd,data1)
+		timec.sleep(0.05)
+		cmd = self.CMD_SET_WAKUP_TIMER01B
+		logging.debug("cmd="+str(cmd)+"  diff="+str(diff))
+		logging.debug(data2)
+		self.send_i2c_command(cmd,data2)
 		return
 
 	def set_cmd(self,cmd,time):
-		data=[0,0,0,0]
+		data=[0,0]
 		logging.debug("cmd="+str(cmd))
 		self.send_i2c_command(cmd,data)
 		return
@@ -257,12 +266,6 @@ class ArduinoTimer():
 		if t < now:
 			t = datetime.datetime(tomorrow.year,tomorrow.month,tomorrow.day,hour,min,0)
 		return t
-
-	def load_schedule_file(self):
-		file = open(self.conf['schedule_file_path'],'r')
-		json_data = json.load(file)
-		
-		return
 	
 	def set_timer_once(self):
 		if self.first_setting:
@@ -273,7 +276,7 @@ class ArduinoTimer():
 		for req in requests:
 			t1 = self.get_time(int(req[0]),int(req[1]))
 			logging.debug(t1)
-			self.set_timer(self.CMD_SET_WAKUP_TIMER01,t1)
+			self.set_timer(t1)
 
 		self.first_setting = True
 		return
@@ -283,6 +286,12 @@ class ArduinoTimer():
 		
 		self.schedule.update()
 		return
+
+	def reload_schedule(self):
+		logging.debug("reload_schedule")
+		self.schedule = Schedule(self.motion,self)
+		self.first_setting=False
+		self.set_timer_once()
 
 	def p(self):
 		print("testestet")

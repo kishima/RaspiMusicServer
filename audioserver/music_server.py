@@ -38,7 +38,7 @@ class MusicServer:
 		self.yukkuri.play_welcome_msg()
 		signal.signal(signal.SIGINT, self.handler)
 
-		self.menu = ap_menu.ApMenu(self.lcd,self.volume)
+		self.menu = ap_menu.ApMenu(self.lcd,self.volume,self.timer)
 		logging.debug("MusicServer init end")
 		time.sleep(0.1)
 
