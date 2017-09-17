@@ -11,6 +11,7 @@ void setup() {
   //I2C
   Wire.begin(i2c_slave_addr);
   Wire.onReceive(callback_i2c_receive);
+  Wire.onRequest(callback_i2c_request);
 
   //GPIO
   pinMode(pin_LED,OUTPUT);
@@ -161,6 +162,7 @@ void normal_task(int loop_count){
       }
       break;
     case RPI_STAT_RUNNING:
+      if(loop_count % 20 == 0){ check_expired_timer(); }
       break;
     case RPI_STAT_WAIT_SHUTDOWN:
       static int shtdwn_delay_count=0;
@@ -185,7 +187,7 @@ void normal_task(int loop_count){
             digitalWrite(pin_shutdown,HIGH);
           }
         }else{
-          if(shtdwn_delay_count>20*30){ //50*20 * 30 msec (30sec)
+          if(shtdwn_delay_count>20*20){ //50*20 * 20 msec (20sec)
             raspi_stat = RPI_STAT_SHUTDOWN;
             Serial.println("*** TURN OFF power successfully ***");
             turn_off();
@@ -201,8 +203,10 @@ void normal_task(int loop_count){
 }
 
 
-const int  CMD_SET_WAKUP_TIMER01    = 0x11;
-const int  CMD_SET_WAKUP_TIMER02    = 0x12;
+const int  CMD_SET_WAKUP_TIMER01A    = 0x11;
+const int  CMD_SET_WAKUP_TIMER01B    = 0x12;
+const int  CMD_SET_WAKUP_TIMER02A    = 0x21;
+const int  CMD_SET_WAKUP_TIMER02B    = 0x22;
 const int  CMD_CLEAR_TIMER          = 0x40;
 const int  CMD_SHUTDOWN_NOW         = 0xFF;
 
@@ -223,6 +227,8 @@ void wakeup_by_timer(){
 
 void check_timer(){
   unsigned long now = millis();
+  Serial.println(now);
+  Serial.println(raspy_timer[0]);
   if(raspy_timer[0] > 0 && now > raspy_timer[0]){
       Serial.println("Timer1 ignition");
       wakeup_by_timer();
@@ -233,6 +239,23 @@ void check_timer(){
   }
 }
 
+void check_expired_timer(){
+  unsigned long now = millis();
+  Serial.println(now);
+  Serial.println(raspy_timer[0]);
+  if(raspy_timer[0] > 0 && now > raspy_timer[0]){
+      Serial.println("Timer1 expired");
+      raspy_timer[0]=0;
+  }
+  if(raspy_timer[1] > 0 && now > raspy_timer[1]){
+      Serial.println("Timer2 expired");
+      raspy_timer[1]=0;
+  }
+}
+
+unsigned long timer_data_com1 = 0; 
+unsigned long timer_data_com2 = 0; 
+
 void callback_i2c_receive(int length){
   unsigned long now = millis();
   int cmd = Wire.read();
@@ -241,26 +264,60 @@ void callback_i2c_receive(int length){
   Serial.println(cmd);
   Serial.print("data_len = ");
   Serial.println(data_len);
-  unsigned long data=0;
-  if(data_len==4){
+
+  if(cmd==CMD_SET_WAKUP_TIMER01A){
+    timer_data_com1=0;
     int count=3;
     while (0 < Wire.available()) {
       int d = Wire.read();
-      data += d << (8*count);
-      count -= 1;
+      Serial.print(d);
+      if(count>=2){
+        if(d>0 && count==3){
+          timer_data_com1 += (unsigned long)(d * 0x1000000);
+        }
+        if(d>0 && count==2){
+          timer_data_com1 += (unsigned long)(d * 0x10000);
+        }
+        count -= 1;
+      }
     }
-    Serial.print("\ndata=");
-    Serial.println(data);
   }
+  if(cmd==CMD_SET_WAKUP_TIMER01B){
+    int count=1;
+    while (0 < Wire.available()) {
+      int d = Wire.read();
+      Serial.print(d);
+      if(count>=0){
+        if(d>0){
+          timer_data_com1 += (unsigned long)(d << (8*count));
+        }
+        count -= 1;
+      }
+    }
+  }
+  if(cmd==CMD_SET_WAKUP_TIMER01A || cmd==CMD_SET_WAKUP_TIMER01B){
+    Serial.print("\ntimer_data_com1=");
+    Serial.println(timer_data_com1);
+  }
+  if(cmd!=CMD_SET_WAKUP_TIMER01A && cmd!=CMD_SET_WAKUP_TIMER01B){
+    while (0 < Wire.available()) {
+      int d = Wire.read();
+    }
+  }
+
   
+  Serial.print("now=");
+  Serial.println(now);
   switch(cmd){
-    case CMD_SET_WAKUP_TIMER01:
+    case CMD_SET_WAKUP_TIMER01B:
       Serial.println("CMD_SET_WAKUP_TIMER01");
-      raspy_timer[0]=millis()+data*1000 + now;
+      raspy_timer[0]=timer_data_com1*1000 + now;
+      Serial.print("raspy_timer[0]=");
+      Serial.println(raspy_timer[0]);
       break;
-    case CMD_SET_WAKUP_TIMER02:
+    case CMD_SET_WAKUP_TIMER02B:
       Serial.println("CMD_SET_WAKUP_TIMER02");
-      raspy_timer[1]=millis()+data*1000 + now;
+      raspy_timer[1]=timer_data_com2*1000 + now;
       break;
     case CMD_CLEAR_TIMER:
       Serial.println("CMD_CLEAR_TIMER");
@@ -278,6 +335,9 @@ void callback_i2c_receive(int length){
   
 }
 
+void callback_i2c_request(){
+  Serial.println("callback_i2c_request");
+}
 
 //************************************************************
 void loop() {
