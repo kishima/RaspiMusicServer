@@ -185,7 +185,7 @@ void normal_task(int loop_count){
             digitalWrite(pin_shutdown,HIGH);
           }
         }else{
-          if(shtdwn_delay_count>20*50){ //50*20 * 50 msec (50sec)
+          if(shtdwn_delay_count>20*30){ //50*20 * 30 msec (30sec)
             raspi_stat = RPI_STAT_SHUTDOWN;
             Serial.println("*** TURN OFF power successfully ***");
             turn_off();
@@ -234,6 +234,7 @@ void check_timer(){
 }
 
 void callback_i2c_receive(int length){
+  unsigned long now = millis();
   int cmd = Wire.read();
   int data_len = Wire.read();
   Serial.print("cmd = ");
@@ -254,15 +255,19 @@ void callback_i2c_receive(int length){
   
   switch(cmd){
     case CMD_SET_WAKUP_TIMER01:
-      raspy_timer[0]=millis()+data*1000;
+      Serial.println("CMD_SET_WAKUP_TIMER01");
+      raspy_timer[0]=millis()+data*1000 + now;
       break;
     case CMD_SET_WAKUP_TIMER02:
-      raspy_timer[1]=millis()+data*1000;
+      Serial.println("CMD_SET_WAKUP_TIMER02");
+      raspy_timer[1]=millis()+data*1000 + now;
       break;
     case CMD_CLEAR_TIMER:
+      Serial.println("CMD_CLEAR_TIMER");
       clear_timer();
       break;
     case CMD_SHUTDOWN_NOW:
+      Serial.println("CMD_SHUTDOWN_NOW");
       if(raspi_stat == RPI_STAT_RUNNING){ 
         Serial.println("shutdown request from Raspi");
         digitalWrite(pin_shutdown,LOW);
