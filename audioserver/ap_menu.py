@@ -164,7 +164,7 @@ class ApMenu:
 		if button==1:
 			logging.debug("button press: cursor="+str(self.menu_cursor))
 			if self.menu_item[self.menu_cursor] == "PLAY":
-				r = self.music.play(str(self.current_station+1))
+				r = self.music.play_item(str(self.current_station+1))
 				logging.debug(r)
 			elif self.menu_item[self.menu_cursor] == "STOP":
 				r = self.music.stop()

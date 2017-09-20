@@ -117,7 +117,7 @@ class Schedule:
 
 	def check_music_control(self,entry):
 		if entry['action'] == "play":
-			self.music.play(entry['content'])
+			self.music.play_item(entry['content'])
 		elif entry['action'] == "stop":
 			self.music.stop()
 		return

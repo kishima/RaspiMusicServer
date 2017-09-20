@@ -25,7 +25,7 @@ class ApMusic:
 	def play(self):
 		self.proc_cmd("mpc play")
 
-	def play(self,item):
+	def play_item(self,item):
 		self.proc_cmd("mpc play "+item)
 
 	def stop(self):
