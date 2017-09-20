@@ -40,8 +40,20 @@ class ApLcd(threading.Thread):
 			self.do_put_text_pos(q[1],q[2],q[3])
 		return self.queue.empty()
 
+	def i2c_byte_write(self,addr,type,cmd):
+		for num in range(1,5):
+			try:
+				self.bus.write_byte_data(addr,type,cmd)
+			except IOError:
+				logging.debug("I2C IOerror in LCD in Arduino communication > Retry")
+				time.sleep(num)
+			else:
+				return True
+		logging.debug("I2C IOerror in LCD in Arduino communication > Retry FAILE!")
+		return Flase
+		
 	def send_command(self,cmd):
-		self.bus.write_byte_data(self.TEXT_ADDR,0x80,cmd)
+		self.i2c_byte_write(self.TEXT_ADDR,0x80,cmd)
 		return
 
 	def clear_display(self):
@@ -97,7 +109,7 @@ class ApLcd(threading.Thread):
 				if c == '\n':
 					continue
 			count += 1
-			self.bus.write_byte_data(self.TEXT_ADDR,0x40,ord(c))
+			self.i2c_byte_write(self.TEXT_ADDR,0x40,ord(c))
 
 	def update(self,count):
 		return
